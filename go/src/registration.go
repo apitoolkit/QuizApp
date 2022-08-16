@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
+	apitoolkit "github.com/apitoolkit/apitoolkit-go"
 	"github.com/gin-contrib/cors" // Why do we need this package?
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -76,7 +78,18 @@ func main() {
 	defer db.Close()
 
 	db.AutoMigrate(&User{}, &QGenres{}, &Quiz{}, &Genres{}, &Score{})
+
+	apitoolkitClient, err := apitoolkit.NewClient(context.Background(), apitoolkit.Config{
+		APIKey: "xa5IJMIePi4zlddOgqZsTDxL9DmQHdKevbK+1exYoWoApI6W",
+		// RootURL: "http://localhost:8081",
+	})
+	if err != nil {
+		panic(err)
+		return
+	}
+
 	r := gin.Default()
+	r.Use(apitoolkitClient.GinMiddleware)
 	r.GET("/people/", GetPeople)                 // This sends the set of users
 	r.POST("/people", CreatePerson)              // This creates a new user
 	r.POST("/signin/", LoginUser)                // This is for login
@@ -87,20 +100,20 @@ func main() {
 	r.GET("/quiz/", ViewQuestion)                             // This sends the set of questions
 	r.GET("/quiz/:qname", ShowQuiz)                           // This sends a particular quiz
 	r.GET("/quiz/:qname/:question", ShowQuestion)             // This sends ta particular question
-	r.PUT("/quiz/:qname/:question", UpdateQuestion)           //This sends an update on a question
-	r.DELETE("/quiz/:genre/:qname/:question", DeleteQuestion) //This deletes a qiven question
+	r.PUT("/quiz/:qname/:question", UpdateQuestion)           // This sends an update on a question
+	r.DELETE("/quiz/:genre/:qname/:question", DeleteQuestion) // This deletes a qiven question
 
 	r.GET("/genres/", ViewQuiz)            // This sends the set of quiz
 	r.GET("/all-genres/", ViewGenres)      // This sends all genres
-	r.GET("/genres/:genre", GetQuiz)       //This sends quiz of a particular genre
-	r.DELETE("/genres/:qname", DeleteQuiz) //This deletes a particular quiz
+	r.GET("/genres/:genre", GetQuiz)       // This sends quiz of a particular genre
+	r.DELETE("/genres/:qname", DeleteQuiz) // This deletes a particular quiz
 
-	r.POST("/score/", PostScore)                          //This adds a new score
-	r.PUT("/score/", UpdateScore)                         //Updates a pre-existing score
-	r.GET("/score/:username/:genre/:qname", GetUserScore) //gets a particular quiz score
-	r.GET("/score/", GetAllScores)                        //gets all scores
-	r.GET("/score-genre/:genre", GetGenreScores)          //gets a particular genre score
-	r.GET("/score-users/:username", GetUserQuiz)          //gets quizname and score for a particular user
+	r.POST("/score/", PostScore)                          // This adds a new score
+	r.PUT("/score/", UpdateScore)                         // Updates a pre-existing score
+	r.GET("/score/:username/:genre/:qname", GetUserScore) // gets a particular quiz score
+	r.GET("/score/", GetAllScores)                        // gets all scores
+	r.GET("/score-genre/:genre", GetGenreScores)          // gets a particular genre score
+	r.GET("/score-users/:username", GetUserQuiz)          // gets quizname and score for a particular user
 
 	r.Use((cors.Default()))
 	r.Run(":8080") // Run on port 8080
@@ -131,7 +144,6 @@ func CreatePerson(c *gin.Context) {
 	}
 	c.Header("access-control-allow-origin", "*")
 	c.JSON(200, user)
-
 }
 
 // GetPeople returns the list of users
@@ -294,7 +306,6 @@ func DeleteQuestion(c *gin.Context) {
 	}
 	c.Header("access-control-allow-origin", "*")
 	c.JSON(200, gin.H{"qname #" + qname: "deleted"})
-
 }
 
 // ShowQuiz shows the list of quizes
