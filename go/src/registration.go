@@ -82,10 +82,13 @@ func main() {
 	apitoolkitClient, err := apitoolkit.NewClient(context.Background(), apitoolkit.Config{
 		APIKey: "xa5IJMIePi4zlddOgqZsTDxL9DmQHdKevbK+1exYoWoApI6W",
 		// RootURL: "http://localhost:8081",
+    RedactHeaders: []string{ "access-control-allow-origin", "Content-Type"},
+    RedactRequestBody: []string{"$[*].username"},
+    RedactResponseBody: []string{"$[*].username"},
+    Debug: true,
 	})
 	if err != nil {
 		panic(err)
-		return
 	}
 
 	r := gin.Default()
